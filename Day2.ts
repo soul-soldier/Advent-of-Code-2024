@@ -1,92 +1,67 @@
+import { assert } from 'console';
 import * as fs from 'fs';
 
-function readInputFile(filePath: string): number[][] {
+const readInputFile = (filePath: string): number[][] => {
     const data = fs.readFileSync(filePath, 'utf-8');
-    
+
+    const lineToNumbers = (line: string) => line.trim().split(" ").map(Number)
+
     const lines: number[][] = data
-    .trim()
-    .split('\n')
-    .map(line => line.trim().split(" ").map(Number));
+        .trim()
+        .split('\n')
+        .map(lineToNumbers);
 
     return lines;
 }
 
-const checkLineOrder = (line: number[]): string => {
-    const isAscending = line.every((val, idx, arr) => idx === 0 || arr[idx - 1] <= val);
-    const isDescending = line.every((val, idx, arr) => idx === 0 || arr[idx - 1] >= val);
+const slidingWindow = (line: number[]): number[][] => {
+    const result: number[][] = [];
 
-    if (isAscending) return "Ascending";
-    if (isDescending) return "Descending";
-    return "Unordered";
+    for (let i = 0; i < line.length - 1; i++) {
+        result.push([line[i], line[i + 1]]);
+    }
+
+    return result;
 }
 
-const isValidLine = (line: number[]): boolean => {
-    for (let j = 0; j < line.length - 1; j++) {
-        const diff = Math.abs(line[j] - line[j + 1]);
-        if (diff < 1 || diff > 3) {
-            return false;
-        }
-    }
-    return true;
-};
+const isStriclyMonotonous = (line: number[]): boolean => {
+    return slidingWindow(line).every(([a, b], _, windows) => a < b === windows[0][0] < windows[0][1]);
+}
+
+const hasSafeDifferences = (line: number[]): boolean => {
+    return slidingWindow(line).every(([a, b]) => Math.abs(a - b) <= 3 && Math.abs(a - b) >= 1);
+}
+
+const isSafeLine = (lines: number[]): boolean => {
+    return isStriclyMonotonous(lines) && hasSafeDifferences(lines);
+}
 
 const countSafeReports = (lines: number[][]): number => {
-    let count: number = 0;
+    return lines.filter(isSafeLine).length;
+}
 
-   for (const line of lines) {
+const removeAtIndex = (line: number[], index: number): number[] => line.slice(0, index).concat(line.slice(index + 1));
 
-    const lineOrder: string = checkLineOrder(line);
-    if (lineOrder === "Unordered") continue;
-    let isValid = true;
+const dampeningOptionsFor = (line: number[]): number[][] => {
+    return line.map((_, i) => removeAtIndex(line, i));
+}
 
-    for (let j = 0; j < line.length - 1; j++) {
-        const diff = Math.abs(line[j] - line[j + 1]);
-        if (diff < 1 || diff > 3) {
-            isValid = false;
-            break;
-        }
-    }
-    
-    if (isValid) {
-        count++;
-    }
-   }
-
-   return count;
+const isSafeLineWDampener = (lines: number[]): boolean => {
+    return dampeningOptionsFor(lines).some(isSafeLine);
 }
 
 const countSafeReportsWDampener = (lines: number[][]): number => {
-    let count: number = 0;
-
-    for (const line of lines) {
-        const lineOrder: string = checkLineOrder(line);
-        if (lineOrder !== "Unordered" && isValidLine(line)) {
-            count++;
-            continue;
-        };
-        
-        let isSafeByRemovingOne: boolean = false;
-        for (let i = 0; i < line.length; i++) {
-            const modifiedLine = line.slice(0, i).concat(line.slice(i + 1));
-          if (checkLineOrder(modifiedLine) !== "Unordered" && isValidLine(modifiedLine)) {
-            isSafeByRemovingOne = true;
-            break;
-          }
-        }
-
-        if (isSafeByRemovingOne) {
-            count++;
-        }
-    }
-
-    return count;
+    return lines.filter(isSafeLineWDampener).length;
 }
 
-function main() : void {
-   const simpleExample: number[][] = readInputFile("InputDay2Simple.txt");
-   const input: number[][] = readInputFile("InputDay2.txt");
-   console.log(countSafeReports(input));
-   console.log(countSafeReportsWDampener(input));
+const main = () => {
+    const simpleExample: number[][] = readInputFile("InputDay2Simple.txt");
+    assert(countSafeReports(simpleExample) === 2, "Simple example failed");
+    assert(countSafeReportsWDampener(simpleExample) === 4, "Simple example with dampener failed");
+
+    const input: number[][] = readInputFile("InputDay2.txt");
+    console.log("Input has", countSafeReports(input), "safe reports");
+    console.log("Input has", countSafeReportsWDampener(input), "safe reports with dampener");
 }
 
 main();
