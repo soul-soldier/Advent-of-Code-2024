@@ -20,6 +20,16 @@ const checkLineOrder = (line: number[]): string => {
     return "Unordered";
 }
 
+const isValidLine = (line: number[]): boolean => {
+    for (let j = 0; j < line.length - 1; j++) {
+        const diff = Math.abs(line[j] - line[j + 1]);
+        if (diff < 1 || diff > 3) {
+            return false;
+        }
+    }
+    return true;
+};
+
 const countSafeReports = (lines: number[][]): number => {
     let count: number = 0;
 
@@ -45,9 +55,42 @@ const countSafeReports = (lines: number[][]): number => {
    return count;
 }
 
+const countSafeReportsWDampener = (lines: number[][]): number => {
+    let count: number = 0;
+    // for testing purposes, can be deleted after
+    let lineNumberCount: number = 1;
+
+    for (const line of lines) {
+        const lineOrder: string = checkLineOrder(line);
+        if (lineOrder !== "Unordered" && isValidLine(line)) {
+            count++;
+            continue;
+        };
+        
+        let isSafeByRemovingOne: boolean = false;
+        for (let i = 0; i < line.length; i++) {
+            const modifiedLine = line.slice(0, i).concat(line.slice(i + 1));
+          if (checkLineOrder(modifiedLine) !== "Unordered" && isValidLine(modifiedLine)) {
+            isSafeByRemovingOne = true;
+            break;
+          }
+        }
+
+        if (isSafeByRemovingOne) {
+            count++;
+            console.log(`line ${lineNumberCount} is safe by removing one`);
+            lineNumberCount++;
+        }
+    }
+
+    return count;
+}
+
 function main() : void {
-   const lines: number[][] = readInputFile("InputDay2.txt");
-   console.log(countSafeReports(lines));
+   const simpleExample: number[][] = readInputFile("InputDay2Simple.txt");
+   const input: number[][] = readInputFile("InputDay2.txt");
+   console.log(countSafeReports(input));
+   console.log(countSafeReportsWDampener(input));
 }
 
 main();
