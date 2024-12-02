@@ -57,8 +57,6 @@ const countSafeReports = (lines: number[][]): number => {
 
 const countSafeReportsWDampener = (lines: number[][]): number => {
     let count: number = 0;
-    // for testing purposes, can be deleted after
-    let lineNumberCount: number = 1;
 
     for (const line of lines) {
         const lineOrder: string = checkLineOrder(line);
@@ -78,8 +76,6 @@ const countSafeReportsWDampener = (lines: number[][]): number => {
 
         if (isSafeByRemovingOne) {
             count++;
-            console.log(`line ${lineNumberCount} is safe by removing one`);
-            lineNumberCount++;
         }
     }
 

@@ -50,8 +50,6 @@ var countSafeReports = function (lines) {
 };
 var countSafeReportsWDampener = function (lines) {
     var count = 0;
-    // for testing purposes, can be deleted after
-    var lineNumberCount = 1;
     for (var _i = 0, lines_2 = lines; _i < lines_2.length; _i++) {
         var line = lines_2[_i];
         var lineOrder = checkLineOrder(line);
@@ -70,8 +68,6 @@ var countSafeReportsWDampener = function (lines) {
         }
         if (isSafeByRemovingOne) {
             count++;
-            console.log("line ".concat(lineNumberCount, " is safe by removing one"));
-            lineNumberCount++;
         }
     }
     return count;
