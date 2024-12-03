@@ -2,13 +2,9 @@
 import { assert } from 'console';
 import * as fs from 'fs';
 
-const readInputFile = (filePath: string): string[] => {
+const readInputFile = (filePath: string): string => {
     const inputString = fs.readFileSync(filePath, 'utf-8');
-
-    const lines: string[] = inputString
-        .trim()
-        .split('\n')
-    return lines;
+    return inputString.trim();
 }
 
 const regexPart1 = /mul\((\d{1,3}),(\d{1,3})\)/g;
@@ -18,22 +14,16 @@ const extractMatches = (input: string, regex: RegExp): string[] => {
     return Array.from(input.matchAll(regex), match => match[0]);
 }
 
-const calculateSumOfMultiplications = (input: string): number => {
-    let sum = 0;
-    let match;
+const calculateSumOfMultiplications = (matches: string[]): number =>
+    matches.reduce((sum, match) => {
+        const matches = match.match(/mul\((\d+),(\d+)\)/);
+        if (!matches) return sum;
 
-    regexPart1.lastIndex = 0;
+        const num1 = parseInt(matches[1], 10);
+        const num2 = parseInt(matches[2], 10);
 
-    while ((match = regexPart1.exec(input)) !== null) {
-        const num1 = parseInt(match[1], 10);
-        const num2 = parseInt(match[2], 10);
-        //console.log(num1, num2);
-        sum += num1 * num2;
-        //console.log(`Match found: ${match[0]} => ${num1} * ${num2} = ${num1 * num2}`);
-    }
-
-    return sum;
-};
+        return sum + num1 * num2;
+    }, 0);
 
 const extractValidMatches = (input: string): string[] => {
     const validMatches: string[] = [];
@@ -56,27 +46,24 @@ const extractValidMatches = (input: string): string[] => {
     return validMatches;
 }
 
-
 const main = () => {
-    const inputSimple: string[] = readInputFile("InputDay3Simple.txt");
-    const inputStringSimple = inputSimple.join("\n");
-    const sum1 = calculateSumOfMultiplications(inputStringSimple);
-    assert(sum1 === 161, "Simple example failed");
-    console.log(sum1);
+    const inputSimple: string = readInputFile("InputDay3Simple.txt");
+    const sumPart1Simple = calculateSumOfMultiplications(extractMatches(inputSimple, regexPart1));
+    assert(sumPart1Simple === 161, "Simple example failed");
+    console.log("Sum Part 1 simple example: ", sumPart1Simple);
 
-    /* const input: string[] = readInputFile("InputDay3.txt");
-    const inputString = input.join("\n");
-    const sum2 = calculateSumOfMultiplications(inputString);
-    console.log(sum2); */
-    const simpleExample: string = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
-    const result = extractValidMatches(simpleExample);
-    const sum2 = calculateSumOfMultiplications(result.join(""));
-    assert(sum2 === 48, "Simple example failed");
-    console.log(sum2);
+    const input: string = readInputFile("InputDay3.txt");
+    const sumPart1 = calculateSumOfMultiplications(extractMatches(input, regexPart1));
+    console.log("Sum Part 1               : ", sumPart1);
 
-    const input: string[] = readInputFile("InputDay3.txt");
-    const inputString = input.join("\n");
-    const sum3 = calculateSumOfMultiplications(extractValidMatches(inputString).join(""));
-    console.log(sum3);
+    const inputSimplePart2: string = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
+    const result = extractValidMatches(inputSimplePart2);
+    const sumPart2Simple = calculateSumOfMultiplications(result);
+    assert(sumPart2Simple === 48, "Simple example failed");
+    console.log("Sum Part 2 simple example: ", sumPart2Simple);
+
+
+    const sumPart2 = calculateSumOfMultiplications(extractValidMatches(input));
+    console.log("Sum Part 2               : ", sumPart2);
 }
 main();
